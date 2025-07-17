@@ -99,10 +99,19 @@ def wait_for_button():
             print("Button pressed! Ready to fire: " + ("TRUE" if ready_to_fire else "FALSE"))
             if ready_to_fire:
                 ready_to_fire = False
+                try:
+                    mqtt_client.client.publish("/cannon_fired", "null")
+                except Exception as e:
+                    print("MQTT publishing failed!")
                 trigger_cannon()
             else:
                 ready_to_fire = True
                 GPIO.output(LED_PIN, GPIO.HIGH)
+                try:
+                    mqtt_client.client.publish("/button", "null")
+                except Exception as e:
+                    print("MQTT publishing failed!")
+
                 time.sleep(1)
             while GPIO.input(BUTTON_PIN) == GPIO.LOW:
                 time.sleep(0.05)
@@ -114,7 +123,7 @@ def trigger_cannon():
     time.sleep(0.1) # Note - not necessary
     # 2. Activate solenoid
     GPIO.output(SOLENOID_PIN, GPIO.HIGH)
-    time.sleep(0.2)
+    time.sleep(0.5)
     # 4. Let go of magnet, launching tomato
     PI.set_PWM_dutycycle(MAGNET_PIN, 0)
     time.sleep(0.25)
